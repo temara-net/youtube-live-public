@@ -1,0 +1,13 @@
+# Playlist untuk mode playlist
+# Satu URL video MP4 langsung per baris. Baris # = komentar, dilewati.
+# Salin file ini jadi playlist.txt, lalu isi dengan URL videomu sendiri.
+# Contoh URL langsung (harus bisa di-download curl, bukan halaman web):
+# https://example.com/video1.mp4
+# https://example.com/video2.mp4
+#
+# Tips URL langsung:
+# - Google Drive: https://drive.google.com/uc?export=download&id=FILE_ID
+#   (file harus sharing "Anyone with the link", dan < 100MB lebih aman)
+# - Dropbox: ubah ?dl=0 jadi ?dl=1 di akhir link
+# - GitHub Release: upload video ke Releases, pakai link download-nya
+# JANGAN pakai link halaman YouTube / halaman nonton — itu bukan file MP4.

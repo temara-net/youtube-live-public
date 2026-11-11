@@ -1,0 +1,84 @@
+name: YouTube Live Streaming
+
+# Cara pakai: GitHub repo > tab Actions > YouTube Live Streaming > Run workflow
+# JANGAN commit Stream Key ke file ini. Key hanya di Secrets: YT_STREAM_KEY
+# Batas nyata GitHub Actions: 1 job max 6 jam, akun Free 2000 menit/bulan.
+# Jadi 1x run diset max 330 menit (5,5 jam) supaya aman, lalu Run lagi untuk lanjut.
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "URL video MP4 langsung (https://.../video.mp4). Kosongkan jika pakai video.mp4 di repo atau playlist.txt"
+        required: false
+        default: ""
+        type: string
+      mode:
+        description: "Mode streaming"
+        required: false
+        default: "single"
+        type: choice
+        options:
+          - single
+          - playlist
+          - image-audio
+      quality:
+        description: "Kualitas"
+        required: false
+        default: "720p"
+        type: choice
+        options:
+          - "720p"
+          - "1080p"
+          - "480p"
+      duration_minutes:
+        description: "Durasi maksimal (menit, 1-350). Default 330 = 5,5 jam"
+        required: false
+        default: "330"
+        type: string
+      image_url:
+        description: "Mode image-audio saja: URL gambar cover (jpg/png). Kosongkan jika pakai cover.jpg di repo"
+        required: false
+        default: ""
+        type: string
+      audio_url:
+        description: "Mode image-audio saja: URL audio (mp3). Kosongkan jika pakai audio.mp3 di repo"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg curl
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
+      - name: Cek Stream Key ada atau tidak
+        run: |
+          if [ -z "${{ secrets.YT_STREAM_KEY }}" ]; then
+            echo "::error::Secret YT_STREAM_KEY belum diisi. Buka Settings > Secrets and variables > Actions > New repository secret, nama: YT_STREAM_KEY, isi: Stream Key dari YouTube Studio."
+            exit 1
+          fi
+          echo "Stream Key ditemukan (panjang ${#YT_STREAM_KEY} karakter, tidak ditampilkan)."
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+
+      - name: Streaming ke YouTube
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+          VIDEO_URL: ${{ inputs.video_url }}
+          MODE: ${{ inputs.mode }}
+          QUALITY: ${{ inputs.quality }}
+          DURATION_MINUTES: ${{ inputs.duration_minutes }}
+          IMAGE_URL: ${{ inputs.image_url }}
+          AUDIO_URL: ${{ inputs.audio_url }}
+        run: bash scripts/stream.sh

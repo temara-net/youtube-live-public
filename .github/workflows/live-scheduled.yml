@@ -1,0 +1,80 @@
+name: YouTube Live Terjadwal (Otomatis)
+
+# Workflow ini untuk JADWAL OTOMATIS.
+# Beda dengan live.yml (manual Run workflow):
+# - live.yml: kamu klik Run, isi VIDEO_URL saat itu juga.
+# - live-scheduled.yml: jalan sendiri tiap jadwal cron, TANPA input.
+#   Link video TIDAK ditulis di file ini — disimpan di Secret VIDEO_URL,
+#   sama seperti Stream Key di Secret YT_STREAM_KEY. Jadi repo boleh Public,
+#   link video tetap tidak terlihat di file.
+#   Isi Secret VIDEO_URL dengan link MP4 langsung (Drive uc?export=download&id=...).
+#
+# JADWAL AKTIF:
+# Live tiap hari 1x, target jam 22:00 WIB.
+# Video dari Secret VIDEO_URL, durasi 164 menit,
+#   diputar LOOP 2x jadi total 330 menit (5,5 jam), dari jam 22:00 sampai
+#   sekitar jam 03:30 WIB. Mode single, kualitas 720p.
+#   Script stream.sh sudah loop video dengan -stream_loop -1.
+# Cron GitHub pakai UTC, bukan WIB. WIB = UTC+7.
+# Cron di bawah "50 14 * * *" = tiap hari 21:50 WIB.
+# Sengaja 10 menit lebih awal karena GitHub bisa telat 5-15 menit,
+# jadi live-nya mulai sekitar jam 22:00 WIB.
+# 3. Pastikan Secret YT_STREAM_KEY dan Secret VIDEO_URL sudah diisi.
+#    Tanpa kedua secret itu, workflow ini gagal dan live tidak jalan.
+# 4. Buat juga jadwalnya di YouTube Studio (judul, tanggal, jam) — lihat README.
+# 5. Push file ini, lalu cek tab Actions: workflow akan muncul dan jalan sesuai cron.
+#
+# KUOTA: repo ini Public, jadi Actions di repo publik gratis tanpa
+# batas menit, live harian 330 menit bisa jalan terus.
+# Kalau repo diubah jadi Private, akun Free cuma dapat 2.000 menit/bulan.
+# UNTUK MENONAKTIFKAN: hapus / rename file ini, atau ubah cron jadi komentar.
+# JANGAN aktifkan live.yml dan live-scheduled.yml di jam yang sama — nanti dobel stream.
+
+on:
+  schedule:
+    # Tiap hari 21:50 WIB (14:50 UTC), target live jam 22:00 WIB
+    - cron: "50 14 * * *"
+  workflow_dispatch:
+
+env:
+  # Link video TIDAK ditulis di sini — diambil dari Secret VIDEO_URL.
+  DEFAULT_MODE: "single"      # single | playlist | image-audio
+  DEFAULT_QUALITY: "720p"     # 720p | 1080p | 480p
+  DEFAULT_DURATION_MINUTES: "330"
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg curl
+          ffmpeg -version | head -n 1
+
+      - name: Cek Stream Key dan Video URL
+        run: |
+          if [ -z "${{ secrets.YT_STREAM_KEY }}" ]; then
+            echo "::error::Secret YT_STREAM_KEY belum diisi."
+            exit 1
+          fi
+          if [ -z "${{ secrets.VIDEO_URL }}" ]; then
+            echo "::error::Secret VIDEO_URL belum diisi."
+            exit 1
+          fi
+          echo "Stream Key dan Video URL ditemukan."
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+          VIDEO_URL: ${{ secrets.VIDEO_URL }}
+
+      - name: Streaming ke YouTube (terjadwal)
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+          VIDEO_URL: ${{ secrets.VIDEO_URL }}
+          MODE: ${{ env.DEFAULT_MODE }}
+          QUALITY: ${{ env.DEFAULT_QUALITY }}
+          DURATION_MINUTES: ${{ env.DEFAULT_DURATION_MINUTES }}
+        run: bash scripts/stream.sh

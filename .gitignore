@@ -1,0 +1,13 @@
+# Jangan commit file besar / hasil test / secret
+*.mp4
+*.mp3
+*.flv
+*.mov
+*.mkv
+test-output.flv
+video.mp4
+audio.mp3
+videos/downloaded/
+videos/concat.txt
+# JANGAN PERNAH taruh Stream Key di file apapun di repo ini.
+# Key hanya di GitHub Secrets: YT_STREAM_KEY

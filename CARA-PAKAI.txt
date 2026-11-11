@@ -1,0 +1,66 @@
+YOUTUBE LIVE VIA GITHUB ACTIONS — CARA PAKAI CEPAT
+Tanpa VPS, tanpa PC menyala. Sudah diuji nyata (FFmpeg + YAML valid).
+Panduan lengkap: baca README.md di paket ini.
+
+1. SIAPKAN YOUTUBE (sekali saja)
+   - YouTube Studio > Create > Go live
+   - Verifikasi channel pakai nomor HP (aktivasi pertama bisa tunggu max 24 jam)
+   - Copy "Default stream key" (jangan dibagikan ke siapa pun)
+
+2. BUAT REPO GITHUB (sekali saja)
+   - GitHub > New repository > nama: youtube-live-public > Public > Create
+   - Upload SEMUA isi ZIP ini ke repo itu (drag & drop di web GitHub)
+     Jangan upload video ke repo. Video cukup dikasih linknya nanti.
+   - Repo > Settings > Secrets and variables > Actions > New repository secret
+     Name: YT_STREAM_KEY
+     Secret: paste Stream Key dari langkah 1
+   - Buat satu secret lagi dengan cara yang sama:
+     Name: VIDEO_URL
+     Secret: paste link download langsung video MP4
+     Jangan tulis Stream Key atau link video di file mana pun.
+
+3. TES DULU (wajib sebelum live beneran)
+   - Repo > tab Actions > Test Streaming — harus hijau
+   - Atau di laptop: bash scripts/test-local.sh (harus keluar TEST LOKAL LULUS)
+
+4. LIVE MANUAL
+   - Repo > Actions > YouTube Live Streaming > Run workflow
+   - video_url: link MP4 langsung, contoh:
+     https://drive.google.com/uc?export=download&id=FILE_ID_KAMU
+     (bukan link youtube.com/watch, bukan halaman Drive biasa)
+   - mode: single / playlist / image-audio
+   - quality: 720p (disarankan) / 1080p / 480p
+   - duration_minutes: misal 120, max 330 (5,5 jam)
+   - Klik Run workflow
+   - Cek YouTube Studio > Live Control Room, tunggu 30-60 detik sampai Good/Excellent,
+     lalu klik Go Live kalau diminta.
+   - Berhenti: Actions > run yang jalan > Cancel run
+
+5. LIVE TERJADWAL (opsional)
+   - Buat jadwal dulu di YouTube Studio (judul, tanggal, jam WIB)
+   - Edit .github/workflows/live-scheduled.yml:
+     atur cron (UTC, WIB = UTC+7). Link video sudah diambil dari
+     Secret VIDEO_URL — jangan tulis linknya di file.
+     Contoh tiap hari 19:00 WIB = cron "0 12 * * *"
+     Set 10 menit SEBELUM jadwal YouTube.
+   - Push file itu. Jangan jalankan live manual di jam yang sama.
+
+BATAS NYATA
+- 1x run max 6 jam (tools ini dibatasi 330 menit)
+- Repo Public: Actions gratis tanpa batas menit.
+  Kalau repo Private, akun Free cuma dapat 2.000 menit/bulan.
+- Video di atas 12 jam mungkin tidak tersimpan sebagai replay oleh YouTube
+
+ISI PAKET
+- README.md = panduan lengkap + troubleshooting
+- .github/workflows/live.yml = live manual
+- .github/workflows/live-scheduled.yml = live terjadwal
+- .github/workflows/test.yml = test otomatis
+- scripts/stream.sh = script utama FFmpeg ke YouTube (RTMPS)
+- scripts/test-local.sh = uji lokal
+- videos/playlist.example.txt = contoh playlist (salin jadi playlist.txt)
+- .gitignore = mencegah video & Stream Key ke-commit tidak sengaja
+
+KEAMANAN
+- Jangan pernah tulis Stream Key atau link video di file, chat, atau screenshot.
+- Kalau bocor: Reset key di YouTube Studio, lalu update Secret di GitHub.

@@ -1,0 +1,45 @@
+name: Test Streaming (tanpa YouTube)
+
+# Workflow ini BUKAN simulasi palsu: dia benar-benar menjalankan FFmpeg
+# dengan video test yang digenerate, encode ke FLV, dan memverifikasi hasilnya.
+# Jalankan otomatis tiap push, atau manual dari tab Actions.
+# Tidak butuh Stream Key, tidak kirim apa pun ke YouTube.
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test-ffmpeg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg curl
+          ffmpeg -version | head -n 1
+
+      - name: Buat video test 5 detik (testsrc + audio sine)
+        run: |
+          ffmpeg -y -f lavfi -i testsrc=size=1280x720:rate=30:duration=5 \
+            -f lavfi -i sine=frequency=440:duration=5 \
+            -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest video.mp4
+          ls -lh video.mp4
+          ffprobe -v error -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 video.mp4
+
+      - name: Uji stream.sh mode single (TEST_MODE=1)
+        env:
+          MODE: single
+          QUALITY: 720p
+          TEST_MODE: "1"
+          TEST_SECONDS: "10"
+        run: bash scripts/stream.sh
+
+      - name: Cek output test terbentuk
+        run: |
+          test -s test-output.flv || { echo "test-output.flv kosong / tidak ada"; exit 1; }
+          ls -lh test-output.flv
+          echo "TEST LULUS: FFmpeg + stream.sh bekerja."
