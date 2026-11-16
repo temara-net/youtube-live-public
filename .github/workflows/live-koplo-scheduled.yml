@@ -1,0 +1,96 @@
+name: YouTube Live Koplo Terjadwal (Otomatis 05:30 WIB)
+
+# Workflow ini untuk LIVE HARIAN DANGDUT KOPLO, tiap hari 05:30 WIB, mulai 17 Nov 2026.
+# Video: live-koplo-dangdut-2jam10.mp4 (Release v1 repo ini), 2 jam 10 menit, 24 lagu,
+# diputar LOOP 2x = ±260 menit, live ±05:30-09:50 WIB.
+# Link live DIBUAT OTOMATIS oleh YouTube (tidak ada siaran terjadwal / API):
+# feed masuk ke stream key, YouTube membuat video live sendiri.
+# Sesudah live selesai, rekaman diubah jadi UNLISTED oleh cron terpisah (±10:00 WIB).
+#
+# PENTING — pemicu utama live ini BUKAN cron GitHub di bawah, melainkan
+# cron harian dari sisi Ara yang dispatch via `gh workflow run` ±05:25 WIB.
+# Cron GitHub TERBUKTI tidak bisa diandalkan: 5 malam berturut-turut
+# (12-16 Nov) tidak fire atau telat 30-98 menit untuk live 22:00, padahal
+# cron-nya benar dan workflow-nya aktif. Cron di bawah ini hanya CADANGAN.
+# Bila cron cadangan fire TELAT saat feed utama sudah jalan, langkah
+# 'Cek dobel' di bawah menghentikan run ini supaya tidak ada 2 feed.
+# Cron GitHub pakai UTC, bukan WIB. WIB = UTC+7.
+# Cron di bawah "25 22 * * *" = tiap hari 05:25 WIB.
+# Secret yang dipakai: YT_STREAM_KEY (sudah ada, sama dengan live 22:00).
+# Link video ditulis langsung di file ini (URL download Release GitHub, publik).
+#
+# JANGAN ubah live-scheduled.yml / live.yml / test.yml dan JANGAN ubah
+# secret VIDEO_URL — live nostalgia 22:00 tergantung pada keduanya.
+# Workflow ini file BARU, tidak menyentuh file lama apa pun.
+
+on:
+  schedule:
+    # Tiap hari 05:25 WIB (22:25 UTC), target live jam 05:30 WIB
+    - cron: "25 22 * * *"
+  workflow_dispatch:
+
+env:
+  # Link video koplo (aset Release v1, publik).
+  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-2jam10.mp4"
+  DEFAULT_QUALITY: "720p"          # 720p | 1080p | 480p
+  DEFAULT_DURATION_MINUTES: "265"   # pengaman: 260 menit (2x putaran) + 5 menit
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cek dobel - hentikan bila feed koplo lain sedang jalan
+        run: |
+          # Pemicu utama live ini adalah cron dari sisi Ara (dispatch via gh).
+          # Cron GitHub di workflow ini hanya cadangan; GitHub terbukti sering
+          # fire TELAT (12-16 Nov: tidak fire / telat 30-98 menit). Bila cron
+          # cadangan fire telat saat feed utama sudah jalan, run ini HARUS
+          # berhenti supaya tidak ada 2 feed ke stream key yang sama.
+          ME="${{ github.run_id }}"
+          echo "Run ini: $ME"
+          IDS="$(gh run list --repo ${{ github.repository }} --workflow live-koplo-scheduled.yml --status in_progress --json databaseId --jq '.[].databaseId' 2>/dev/null || true)"
+          if [ -z "$IDS" ]; then
+            echo "Tidak bisa memeriksa run lain (gh gagal / tidak ada) — lanjut streaming."
+            exit 0
+          fi
+          for id in $IDS; do
+            if [ "$id" != "$ME" ]; then
+              echo "::error::Ada feed koplo lain yang sedang jalan (run $id) — run ini dihentikan supaya tidak dobel."
+              exit 1
+            fi
+          done
+          echo "Tidak ada feed koplo lain — lanjut streaming."
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg curl
+          ffmpeg -version | head -n 1
+
+      - name: Cek Stream Key dan Video URL
+        run: |
+          if [ -z "${{ secrets.YT_STREAM_KEY }}" ]; then
+            echo "::error::Secret YT_STREAM_KEY belum diisi."
+            exit 1
+          fi
+          if [ -z "$KOPLO_VIDEO_URL" ]; then
+            echo "::error::KOPLO_VIDEO_URL kosong."
+            exit 1
+          fi
+          echo "Stream Key dan Video URL ditemukan."
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+          KOPLO_VIDEO_URL: ${{ env.KOPLO_VIDEO_URL }}
+
+      - name: Streaming koplo ke YouTube (terjadwal)
+        env:
+          YT_STREAM_KEY: ${{ secrets.YT_STREAM_KEY }}
+          VIDEO_URL: ${{ env.KOPLO_VIDEO_URL }}
+          QUALITY: ${{ env.DEFAULT_QUALITY }}
+          DURATION_MINUTES: ${{ env.DEFAULT_DURATION_MINUTES }}
+        run: bash scripts/stream-koplo.sh
