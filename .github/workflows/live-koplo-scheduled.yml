@@ -31,7 +31,8 @@ on:
 
 env:
   # Link video koplo (aset Release v1, publik).
-  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-2jam10.mp4"
+  # SEMENTARA ke v1 (17 Nov 20:00): upload v2 sebagai -2jam10 gagal 2x (stream error uploads.github.com) dan aset -2jam10 hilang dari Release; live 18 Nov 05:30 memakai v1 dulu. Kembalikan ke -2jam10 sesudah upload v2 berhasil.
+  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1.mp4"
   DEFAULT_QUALITY: "720p"          # 720p | 1080p | 480p
   DEFAULT_DURATION_MINUTES: "265"   # pengaman: 260 menit (2x putaran) + 5 menit
 
