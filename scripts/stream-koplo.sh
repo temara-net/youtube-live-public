@@ -2,8 +2,11 @@
 # stream-koplo.sh — Streaming video dangdut koplo ke YouTube Live via FFmpeg + RTMPS
 # Dipakai oleh .github/workflows/live-koplo-scheduled.yml (live harian 05:30 WIB).
 # Video diputar 2x (LOOP 2x): -stream_loop 1 = file diputar 2 kali total,
-# durasi ±260 menit (video 130 menit x 2), lalu ffmpeg berhenti sendiri.
-# Timeout 265 menit sebagai pengaman bila putaran ke-2 molor.
+# durasi ±235 menit (video ±118 menit x 2), lalu ffmpeg berhenti sendiri.
+# Timeout 255 menit sebagai pengaman bila putaran ke-2 molor.
+# Video bisa datang dalam 2 bagian (VIDEO_URL + VIDEO_URL_2): kedua bagian
+# diunduh lalu digabung jadi satu file sebelum streaming (19 Nov 2026 —
+# upload 1,4 GB utuh berulang gagal, dipecah ~700 MB per bagian).
 # Bisa dites lokal: TEST_MODE=1 bash scripts/stream-koplo.sh
 #   (tanpa Stream Key, output ke test-output-koplo.flv selama 15 detik)
 set -euo pipefail
@@ -11,7 +14,8 @@ set -euo pipefail
 # ---------- Konfigurasi dari environment ----------
 QUALITY="${QUALITY:-720p}"               # 720p | 1080p | 480p
 VIDEO_URL="${VIDEO_URL:-}"
-DURATION_MINUTES="${DURATION_MINUTES:-265}"
+VIDEO_URL_2="${VIDEO_URL_2:-}"
+DURATION_MINUTES="${DURATION_MINUTES:-255}"
 YT_STREAM_KEY="${YT_STREAM_KEY:-}"
 TEST_MODE="${TEST_MODE:-0}"               # 1 = uji lokal, tidak kirim ke YouTube
 TEST_SECONDS="${TEST_SECONDS:-15}"
@@ -56,7 +60,20 @@ download_file() {
 
 # ---------- Siapkan input ----------
 VIDEO_FILE="video-koplo.mp4"
-if [ -n "$VIDEO_URL" ]; then
+if [ -n "$VIDEO_URL_2" ]; then
+  # Dua bagian: unduh keduanya lalu gabung jadi satu file.
+  [ -n "$VIDEO_URL" ] || { echo "ERROR: VIDEO_URL_2 ada tapi VIDEO_URL kosong." >&2; exit 1; }
+  download_file "$VIDEO_URL" "video-koplo-1.mp4"
+  download_file "$VIDEO_URL_2" "video-koplo-2.mp4"
+  printf "file 'video-koplo-1.mp4'\nfile 'video-koplo-2.mp4'\n" > concat-koplo.txt
+  ffmpeg -hide_banner -v error -f concat -safe 0 -i concat-koplo.txt -c copy "$VIDEO_FILE" -y \
+    || { echo "ERROR: gabung 2 bagian gagal." >&2; exit 1; }
+  JOINED_DUR="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$VIDEO_FILE")"
+  echo "Durasi gabungan: $JOINED_DUR detik (harus ±7057)"
+  # Penjaga: gabungan harus utuh (±118 menit); bila pendek, salah satu bagian rusak/tak lengkap.
+  python3 -c "import sys; d=float('$JOINED_DUR'); sys.exit(0 if d >= 7000 else 1)" \
+    || { echo "ERROR: durasi gabungan $JOINED_DUR terlalu pendek — gabung gagal." >&2; exit 1; }
+elif [ -n "$VIDEO_URL" ]; then
   download_file "$VIDEO_URL" "$VIDEO_FILE"
 elif [ -f "video-koplo.mp4" ]; then
   echo "Pakai video-koplo.mp4 dari repo"
@@ -105,7 +122,7 @@ if [ "$TEST_MODE" = "1" ]; then
   fi
 else
   DURATION_SECONDS=$((DURATION_MINUTES * 60))
-  echo "Streaming selama max $DURATION_MINUTES menit (video loop 2x = ±260 menit), lalu berhenti otomatis."
+  echo "Streaming selama max $DURATION_MINUTES menit (video loop 2x = ±235 menit), lalu berhenti otomatis."
   echo "Untuk berhenti manual: GitHub Actions > run ini > Cancel run."
   set +e
   timeout "$DURATION_SECONDS" ffmpeg -hide_banner -loglevel info \
