@@ -1,8 +1,9 @@
 name: YouTube Live Koplo Terjadwal (Otomatis 05:30 WIB)
 
 # Workflow ini untuk LIVE HARIAN DANGDUT KOPLO, tiap hari 05:30 WIB, mulai 17 Nov 2026.
-# Video: live-koplo-dangdut-2jam10.mp4 (Release v1 repo ini), 2 jam 10 menit, 24 lagu,
-# diputar LOOP 2x = ±260 menit, live ±05:30-09:50 WIB.
+# Video: live-koplo-dangdut-v1-no11.mp4 (Release v1 repo ini), 2 jam 02 menit, 23 lagu
+# (lagu #11 "Dirantai Di Gelangi Rindu" dibuang 18 Nov 2026 — kena copyright),
+# diputar LOOP 2x = ±243 menit, live ±05:30-09:33 WIB.
 # Link live DIBUAT OTOMATIS oleh YouTube (tidak ada siaran terjadwal / API):
 # feed masuk ke stream key, YouTube membuat video live sendiri.
 # Sesudah live selesai, rekaman diubah jadi UNLISTED oleh cron terpisah (±10:00 WIB).
@@ -31,10 +32,10 @@ on:
 
 env:
   # Link video koplo (aset Release v1, publik).
-  # SEMENTARA ke v1 (17 Nov 20:00): upload v2 sebagai -2jam10 gagal 2x (stream error uploads.github.com) dan aset -2jam10 hilang dari Release; live 18 Nov 05:30 memakai v1 dulu. Kembalikan ke -2jam10 sesudah upload v2 berhasil.
-  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1.mp4"
+  # v1-no11 (18 Nov 09:12): lagu #11 dibuang karena kena copyright; aset lama -v1 dihapus dari Release 18 Nov 09:05. v2-no11 lokal (acak + suara bersih, tanpa lagu 11) belum di-upload.
+  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no11.mp4"
   DEFAULT_QUALITY: "720p"          # 720p | 1080p | 480p
-  DEFAULT_DURATION_MINUTES: "265"   # pengaman: 260 menit (2x putaran) + 5 menit
+  DEFAULT_DURATION_MINUTES: "265"   # pengaman di atas durasi 2x putaran (±243 menit)
 
 jobs:
   stream:
