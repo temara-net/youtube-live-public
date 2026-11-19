@@ -4,12 +4,11 @@ name: YouTube Live Koplo Terjadwal (Otomatis 05:30 WIB)
 # *** DIHENTIKAN 19 Nov 2026 (perintah Dea, sesudah peringatan pedoman komunitas
 # "3rd party content" di live 17 Nov) — cron jadwal di bawah DICOPOT; hanya
 # workflow_dispatch (manual) yang tersisa. Hidupkan lagi HANYA atas perintah Dea. ***
-# Video: live-koplo-dangdut-v1-no10-no11-no21.mp4 (Release v1 repo ini), 1 jam 51 menit, 21 lagu
-# (lagu #11 "Dirantai Di Gelangi Rindu" dibuang 18 Nov 2026 — kena copyright;
-#  lagu #10 "Terbelah Jadi Dua" (Rizz Remixer) dibuang 19 Nov 2026 — diklaim PT Infinity Entertainment, block global;
-#  lagu #21 "Cinta Satu Malam" dibuang 19 Nov 2026 — kena copyright, interupsi stream 11:08 WIB),
-# diputar LOOP 2x = ±221 menit, live ±05:30-09:11 WIB.
-# Video dipecah 2 bagian (~700 MB tiap bagian) karena upload 1,4 GB utuh berulang gagal 19 Nov;
+# Video: live-koplo-cover-panggung-v1 (Release v1 repo ini, 2 bagian), 24 lagu cover panggung,
+# ±2 jam 33 menit, diputar LOOP 2x = ±5 jam 7 menit.
+# Menggantikan v1-no10-no11-no21 (21 lagu DJ remix; lagu #10/#11/#21 dibuang karena copyright).
+# Live TETAP JEDA (perintah Dea 19 Nov) — video baru dipakai saat live dilanjutkan atas perintah Dea.
+# Video dipecah 2 bagian (~940 MB + ~870 MB) karena upload 1,4 GB utuh berulang gagal 19 Nov;
 # script menggabung kedua bagian jadi satu file sebelum streaming.
 # Link live DIBUAT OTOMATIS oleh YouTube (tidak ada siaran terjadwal / API):
 # feed masuk ke stream key, YouTube membuat video live sendiri.
@@ -40,16 +39,17 @@ on:
 
 env:
   # Link video koplo (aset Release v1, publik) — 2 bagian, digabung script sebelum streaming.
-  # v1-no10-no11-no21 (19 Nov 12:46): lagu #10 + #11 + #21 dibuang (kena copyright); v2-no11 lokal (acak + suara bersih, tanpa lagu 11) belum di-upload.
-  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no10-no11-no21-part1.mp4"
-  KOPLO_VIDEO_URL_2: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no10-no11-no21-part2.mp4"
+  # cover-panggung-v1 (19 Nov): 24 lagu cover panggung, urutan acak seed 20261119, pitch +2 semitone + cleanup studio;
+  # menggantikan v1-no10-no11-no21 (aset lama tetap ada di Release).
+  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-cover-panggung-v1-part1.mp4"
+  KOPLO_VIDEO_URL_2: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-cover-panggung-v1-part2.mp4"
   DEFAULT_QUALITY: "720p"          # 720p | 1080p | 480p
-  DEFAULT_DURATION_MINUTES: "240"   # pengaman di atas durasi 2x putaran (±221 menit)
+  DEFAULT_DURATION_MINUTES: "320"   # pengaman di atas durasi 2x putaran (±307 menit)
 
 jobs:
   stream:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 340   # harus di atas durasi 320 mnt + unduh/setup (sebelumnya 300 untuk durasi 240)
     steps:
       - uses: actions/checkout@v4
 
