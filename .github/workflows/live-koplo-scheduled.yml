@@ -1,6 +1,9 @@
 name: YouTube Live Koplo Terjadwal (Otomatis 05:30 WIB)
 
 # Workflow ini untuk LIVE HARIAN DANGDUT KOPLO, tiap hari 05:30 WIB, mulai 17 Nov 2026.
+# *** DIHENTIKAN 19 Nov 2026 (perintah Dea, sesudah peringatan pedoman komunitas
+# "3rd party content" di live 17 Nov) — cron jadwal di bawah DICOPOT; hanya
+# workflow_dispatch (manual) yang tersisa. Hidupkan lagi HANYA atas perintah Dea. ***
 # Video: live-koplo-dangdut-v1-no10-no11-no21.mp4 (Release v1 repo ini), 1 jam 51 menit, 21 lagu
 # (lagu #11 "Dirantai Di Gelangi Rindu" dibuang 18 Nov 2026 — kena copyright;
 #  lagu #10 "Terbelah Jadi Dua" (Rizz Remixer) dibuang 19 Nov 2026 — diklaim PT Infinity Entertainment, block global;
@@ -29,9 +32,10 @@ name: YouTube Live Koplo Terjadwal (Otomatis 05:30 WIB)
 # Workflow ini file BARU, tidak menyentuh file lama apa pun.
 
 on:
-  schedule:
-    # Tiap hari 05:25 WIB (22:25 UTC), target live jam 05:30 WIB
-    - cron: "25 22 * * *"
+  # Jadwal DICOPOT 19 Nov 2026 (perintah Dea — live koplo dihentikan).
+  # schedule:
+  #   # Tiap hari 05:25 WIB (22:25 UTC), target live jam 05:30 WIB
+  #   - cron: "25 22 * * *"
   workflow_dispatch:
 
 env:
