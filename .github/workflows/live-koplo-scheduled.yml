@@ -1,10 +1,11 @@
 name: YouTube Live Koplo Terjadwal (Otomatis 05:30 WIB)
 
 # Workflow ini untuk LIVE HARIAN DANGDUT KOPLO, tiap hari 05:30 WIB, mulai 17 Nov 2026.
-# Video: live-koplo-dangdut-v1-no10-no11.mp4 (Release v1 repo ini), 1 jam 58 menit, 22 lagu
+# Video: live-koplo-dangdut-v1-no10-no11-no21.mp4 (Release v1 repo ini), 1 jam 51 menit, 21 lagu
 # (lagu #11 "Dirantai Di Gelangi Rindu" dibuang 18 Nov 2026 — kena copyright;
-#  lagu #10 "Terbelah Jadi Dua" (Rizz Remixer) dibuang 19 Nov 2026 — diklaim PT Infinity Entertainment, block global),
-# diputar LOOP 2x = ±235 menit, live ±05:30-09:25 WIB.
+#  lagu #10 "Terbelah Jadi Dua" (Rizz Remixer) dibuang 19 Nov 2026 — diklaim PT Infinity Entertainment, block global;
+#  lagu #21 "Cinta Satu Malam" dibuang 19 Nov 2026 — kena copyright, interupsi stream 11:08 WIB),
+# diputar LOOP 2x = ±221 menit, live ±05:30-09:11 WIB.
 # Video dipecah 2 bagian (~700 MB tiap bagian) karena upload 1,4 GB utuh berulang gagal 19 Nov;
 # script menggabung kedua bagian jadi satu file sebelum streaming.
 # Link live DIBUAT OTOMATIS oleh YouTube (tidak ada siaran terjadwal / API):
@@ -35,11 +36,11 @@ on:
 
 env:
   # Link video koplo (aset Release v1, publik) — 2 bagian, digabung script sebelum streaming.
-  # v1-no10-no11 (19 Nov 02:52): lagu #10 + #11 dibuang (kena copyright); v2-no11 lokal (acak + suara bersih, tanpa lagu 11) belum di-upload.
-  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no10-no11-part1.mp4"
-  KOPLO_VIDEO_URL_2: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no10-no11-part2.mp4"
+  # v1-no10-no11-no21 (19 Nov 12:46): lagu #10 + #11 + #21 dibuang (kena copyright); v2-no11 lokal (acak + suara bersih, tanpa lagu 11) belum di-upload.
+  KOPLO_VIDEO_URL: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no10-no11-no21-part1.mp4"
+  KOPLO_VIDEO_URL_2: "https://github.com/temara-net/youtube-live-public/releases/download/v1/live-koplo-dangdut-v1-no10-no11-no21-part2.mp4"
   DEFAULT_QUALITY: "720p"          # 720p | 1080p | 480p
-  DEFAULT_DURATION_MINUTES: "255"   # pengaman di atas durasi 2x putaran (±235 menit)
+  DEFAULT_DURATION_MINUTES: "240"   # pengaman di atas durasi 2x putaran (±221 menit)
 
 jobs:
   stream:

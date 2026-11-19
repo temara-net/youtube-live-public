@@ -2,8 +2,8 @@
 # stream-koplo.sh — Streaming video dangdut koplo ke YouTube Live via FFmpeg + RTMPS
 # Dipakai oleh .github/workflows/live-koplo-scheduled.yml (live harian 05:30 WIB).
 # Video diputar 2x (LOOP 2x): -stream_loop 1 = file diputar 2 kali total,
-# durasi ±235 menit (video ±118 menit x 2), lalu ffmpeg berhenti sendiri.
-# Timeout 255 menit sebagai pengaman bila putaran ke-2 molor.
+# durasi ±221 menit (video ±111 menit x 2), lalu ffmpeg berhenti sendiri.
+# Timeout 240 menit sebagai pengaman bila putaran ke-2 molor.
 # Video bisa datang dalam 2 bagian (VIDEO_URL + VIDEO_URL_2): kedua bagian
 # diunduh lalu digabung jadi satu file sebelum streaming (19 Nov 2026 —
 # upload 1,4 GB utuh berulang gagal, dipecah ~700 MB per bagian).
@@ -69,9 +69,9 @@ if [ -n "$VIDEO_URL_2" ]; then
   ffmpeg -hide_banner -v error -f concat -safe 0 -i concat-koplo.txt -c copy "$VIDEO_FILE" -y \
     || { echo "ERROR: gabung 2 bagian gagal." >&2; exit 1; }
   JOINED_DUR="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$VIDEO_FILE")"
-  echo "Durasi gabungan: $JOINED_DUR detik (harus ±7057)"
-  # Penjaga: gabungan harus utuh (±118 menit); bila pendek, salah satu bagian rusak/tak lengkap.
-  python3 -c "import sys; d=float('$JOINED_DUR'); sys.exit(0 if d >= 7000 else 1)" \
+  echo "Durasi gabungan: $JOINED_DUR detik (harus ±6622)"
+  # Penjaga: gabungan harus utuh (±111 menit); bila pendek, salah satu bagian rusak/tak lengkap.
+  python3 -c "import sys; d=float('$JOINED_DUR'); sys.exit(0 if d >= 6500 else 1)" \
     || { echo "ERROR: durasi gabungan $JOINED_DUR terlalu pendek — gabung gagal." >&2; exit 1; }
 elif [ -n "$VIDEO_URL" ]; then
   download_file "$VIDEO_URL" "$VIDEO_FILE"
@@ -122,7 +122,7 @@ if [ "$TEST_MODE" = "1" ]; then
   fi
 else
   DURATION_SECONDS=$((DURATION_MINUTES * 60))
-  echo "Streaming selama max $DURATION_MINUTES menit (video loop 2x = ±235 menit), lalu berhenti otomatis."
+  echo "Streaming selama max $DURATION_MINUTES menit (video loop 2x = ±221 menit), lalu berhenti otomatis."
   echo "Untuk berhenti manual: GitHub Actions > run ini > Cancel run."
   set +e
   timeout "$DURATION_SECONDS" ffmpeg -hide_banner -loglevel info \
